@@ -5,6 +5,7 @@ import { cache } from "react";
 import { Star } from "lucide-react";
 import { EquipmentCard } from "@/components/equipment-card";
 import { FlavorTags } from "@/components/flavor-tags";
+import { Markdown } from "@/components/markdown";
 import { ProBadge } from "@/components/pro-badge";
 import { Card, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
@@ -120,15 +121,17 @@ export default async function BrewDetailPage({ params }: Props) {
         </section>
       )}
 
-      {(brew.flavorTags.length > 0 || brew.notes) && (
+      {brew.flavorTags.length > 0 && (
         <Card>
           <CardTitle className="mb-4">Tasting</CardTitle>
           <FlavorTags tags={brew.flavorTags} max={brew.flavorTags.length} />
-          {brew.notes && (
-            <p className={cn("whitespace-pre-line text-sm leading-relaxed text-sterile/90", brew.flavorTags.length > 0 && "mt-4")}>
-              {brew.notes}
-            </p>
-          )}
+        </Card>
+      )}
+
+      {brew.notes && (
+        <Card>
+          <CardTitle className="mb-4">Notes &amp; annotations</CardTitle>
+          <Markdown>{brew.notes}</Markdown>
         </Card>
       )}
     </article>

@@ -79,24 +79,27 @@ const EQUIPMENT: Record<number, { category: string; name: string; blurb: string 
 };
 
 async function main() {
-  // Reset in dependency order so the seed is re-runnable.
-  await db.roastMeRun.deleteMany();
-  await db.extraction.deleteMany();
-  await db.roast.deleteMany();
-  await db.follow.deleteMany();
-  await db.equipment.deleteMany();
-  await db.bean.deleteMany();
-  await db.roaster.deleteMany();
-  await db.user.deleteMany();
+  // Re-runnable: only the demo accounts (and everything they own) are reset, so real
+  // sign-ups survive a reseed. Cascades remove their logs, gear, follows and Benny runs.
+  await db.user.deleteMany({ where: { email: { endsWith: "@beanwater.demo" } } });
 
   const users: Awaited<ReturnType<typeof db.user.create>>[] = [];
   for (const u of USERS) users.push(await db.user.create({ data: { ...u, onboardedAt: new Date() } }));
 
   const roasters: Awaited<ReturnType<typeof db.roaster.create>>[] = [];
-  for (const r of ROASTERS) roasters.push(await db.roaster.create({ data: r }));
+  for (const r of ROASTERS) roasters.push(await db.roaster.upsert({ where: { name: r.name }, update: r, create: r }));
 
   const beans: Awaited<ReturnType<typeof db.bean.create>>[] = [];
-  for (const { roaster, ...b } of BEANS) beans.push(await db.bean.create({ data: { ...b, roasterId: roasters[roaster].id } }));
+  for (const { roaster, ...b } of BEANS) {
+    const roasterId = roasters[roaster].id;
+    beans.push(
+      await db.bean.upsert({
+        where: { name_roasterId: { name: b.name, roasterId } },
+        update: b,
+        create: { ...b, roasterId },
+      }),
+    );
+  }
 
   const gear: Record<number, Awaited<ReturnType<typeof db.equipment.create>>[]> = {};
   for (const [i, items] of Object.entries(EQUIPMENT)) {
@@ -117,10 +120,29 @@ async function main() {
   const brews = [
     { u: 0, bean: 0, method: "pour-over", dose: 15, yld: 250, grind: "EG-1 6.2", time: 165, temp: 94, rating: 5, h: 2,
       tags: [t("Fruity", "Berry", "Blueberry"), t("Floral", "Floral", "Jasmine"), t("Fruity", "Citrus Fruit", "Lemon"), t("Sweet", "Brown Sugar", "Honey"), t("Floral", "Black Tea"), t("Fruity", "Other Fruit", "Peach"), t("Sweet", "Vanilla")],
-      notes: "Bright and syrupy. Blueberry jam on the finish as it cools." },
+      notes: String.raw`Bright and syrupy. **Blueberry jam** on the finish as it cools.
+
+| Pulse | Time | Total (g) |
+| --- | --- | --- |
+| Bloom | 0:00 | 45 |
+| 1 | 0:40 | 130 |
+| 2 | 1:10 | 200 |
+| 3 | 1:35 | 250 |
+
+Ratio $250 / 15 \approx 1{:}16.7$ · drawdown done at **2:45**.
+
+- [x] Rinse paper, preheat V60
+- [x] Swirl after bloom
+- [ ] Try 93 °C to tame the lemon edge` },
     { u: 3, bean: 1, method: "espresso", dose: 18, yld: 42, grind: "P64 2.1", time: 30, temp: 93, rating: 4, h: 5,
       tags: [t("Fruity", "Other Fruit", "Cherry"), t("Nutty/Cocoa", "Cocoa", "Chocolate"), t("Sweet", "Brown Sugar", "Caramelized")],
-      notes: "Pulled a touch long; cherry cola sweetness." },
+      notes: String.raw`Pulled a touch long; *cherry cola* sweetness.
+
+Refractometer read **TDS 9.2%**:
+
+$$EY = \frac{TDS \times yield}{dose} = \frac{9.2\% \times 42}{18} \approx 21.5\%$$
+
+Right in the 18–22% window, so the length is fine — next shot cut at **38 g** for more body.` },
     { u: 4, bean: 2, method: "pour-over", dose: 20, yld: 320, grind: "ZP6 4.5", time: 210, temp: 96, rating: 5, h: 9,
       tags: [t("Fruity", "Berry", "Blackberry"), t("Fruity", "Citrus Fruit", "Grapefruit"), t("Sour/Fermented", "Sour", "Malic Acid"), t("Fruity", "Other Fruit", "Grape"), t("Sweet", "Brown Sugar", "Molasses"), t("Floral", "Black Tea")],
       notes: "Classic Kenyan blackcurrant; Wave keeps it clean." },
@@ -129,7 +151,10 @@ async function main() {
       notes: "Used this for a sensory workshop — anaerobic funk is restrained." },
     { u: 0, bean: 4, method: "espresso", dose: 18, yld: 36, grind: "EG-1 2.8", time: 28, temp: 92, rating: 4, h: 30,
       tags: [t("Nutty/Cocoa", "Nutty", "Hazelnut"), t("Nutty/Cocoa", "Cocoa", "Dark Chocolate"), t("Sweet", "Brown Sugar", "Caramelized")],
-      notes: "Comfort shot. Great in milk." },
+      notes: String.raw`Comfort shot. Great in milk.
+
+- Ratio $1{:}2$ in 28 s, TDS 10.5% → $EY \approx \frac{10.5 \times 36}{18} = 21.0\%$
+- [ ] Dial 0.1 finer if it runs under 26 s` },
     { u: 1, bean: 5, method: "aeropress", dose: 15, yld: 220, grind: "C40 18 clicks", time: 120, temp: 90, rating: 4, h: 44,
       tags: [t("Fruity", "Other Fruit", "Apple"), t("Sweet", "Brown Sugar", "Honey"), t("Spices", "Brown Spice", "Cinnamon"), t("Floral", "Black Tea")],
       notes: "Inverted, 2 min steep, gentle press." },
@@ -166,10 +191,24 @@ async function main() {
   const roasts = [
     { u: 2, bean: 0, batch: 250, charge: 205, fc: 470, drop: 560, dropT: 204, h: 4,
       tags: [t("Fruity", "Berry", "Strawberry"), t("Fruity", "Berry", "Blueberry"), t("Floral", "Floral", "Jasmine"), t("Sweet", "Brown Sugar", "Honey"), t("Fruity", "Citrus Fruit", "Orange"), t("Sweet", "Vanilla")],
-      notes: "Light Nordic-style. Pulled heat early before FC to avoid a crash." },
+      notes: String.raw`Light Nordic-style. **Pulled heat early** before FC to avoid a crash.
+
+| Phase | End | Duration | Share |
+| --- | --- | --- | --- |
+| Drying | 4:30 | 4:30 | 48% |
+| Maillard | 7:50 | 3:20 | 36% |
+| Development | 9:20 | 1:30 | 16% |
+
+$$DTR = \frac{t_{drop} - t_{FC}}{t_{drop}} = \frac{560 - 470}{560} \approx 16.1\%$$
+
+> Next batch: hold P7 to 4:00 so development lands closer to 18%.` },
     { u: 6, bean: 1, batch: 250, charge: 210, fc: 500, drop: 610, dropT: 209, h: 14,
       tags: [t("Fruity", "Other Fruit", "Cherry"), t("Sweet", "Brown Sugar", "Caramelized"), t("Nutty/Cocoa", "Cocoa", "Chocolate")],
-      notes: "Medium for espresso. Smooth RoR decline." },
+      notes: String.raw`Medium for espresso. Smooth **RoR decline**, no flick.
+
+- Development $\frac{610 - 500}{610} \approx 18.0\%$ ($\Delta t = 1{:}50$)
+- Weight loss $\frac{250 - 214}{250} = 14.4\%$
+- [x] Rest 7 days before dialing in` },
     { u: 5, bean: 2, batch: 100, charge: 200, fc: 450, drop: 530, dropT: 202, h: 26,
       tags: [t("Fruity", "Berry", "Blackberry"), t("Fruity", "Citrus Fruit", "Grapefruit"), t("Sour/Fermented", "Sour", "Citric Acid"), t("Floral", "Black Tea"), t("Sweet", "Brown Sugar", "Molasses"), t("Fruity", "Other Fruit", "Grape"), t("Spices", "Pepper")],
       notes: "Sample roast for cupping a new lot." },

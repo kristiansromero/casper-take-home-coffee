@@ -5,6 +5,7 @@ import { cache } from "react";
 import { DownloadProfileButton } from "@/components/download-profile-button";
 import { EquipmentCard } from "@/components/equipment-card";
 import { FlavorTags } from "@/components/flavor-tags";
+import { Markdown } from "@/components/markdown";
 import { RoastCurveChart } from "@/components/roast-curve-chart";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
@@ -118,9 +119,6 @@ export default async function RoastDetailPage({ params }: Params) {
           ) : (
             <p className="text-sm text-muted">No flavor tags.</p>
           )}
-          <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-sterile/90">
-            {roast.notes || <span className="text-muted">No notes.</span>}
-          </p>
         </Card>
         <div className="flex flex-col gap-3">
           <p className="text-xs font-medium uppercase tracking-wider text-muted">Machine</p>
@@ -131,6 +129,13 @@ export default async function RoastDetailPage({ params }: Params) {
           )}
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Notes &amp; annotations</CardTitle>
+        </CardHeader>
+        {roast.notes ? <Markdown>{roast.notes}</Markdown> : <p className="text-sm text-muted">No notes.</p>}
+      </Card>
     </div>
   );
 }

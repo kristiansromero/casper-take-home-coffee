@@ -12,7 +12,9 @@ import { ProBadge } from "@/components/pro-badge";
 import { RoastCurveChart } from "@/components/roast-curve-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, Input, Select, Textarea } from "@/components/ui/form-controls";
+import { EquipmentSelect } from "@/components/equipment-select";
+import { NotesEditor } from "@/components/notes-editor";
+import { Field, Input, Select } from "@/components/ui/form-controls";
 import { developmentPct, generateCurve } from "@/lib/mock-curve";
 import { PROCESS_OPTIONS, parseMmSs } from "@/lib/roast-schema";
 import { beanSchema } from "@/lib/validation";
@@ -37,7 +39,7 @@ const formSchema = z
     drop: mmss,
     dropTempC: num("Drop temp", 180, 250, "°C"),
     flavorTags: z.array(z.string()).max(30, "Up to 30 tags"),
-    notes: z.string().max(2000),
+    notes: z.string().max(4000),
   })
   .refine((v) => parseMmSs(v.drop) > parseMmSs(v.firstCrack), {
     message: "Drop must come after first crack",
@@ -76,6 +78,8 @@ export function RoastForm({ roasters }: { roasters: RoasterOption[] }) {
       notes: "",
     },
   });
+
+  const roasterOptions = useMemo(() => roasters.map((r) => ({ ...r, category: "roaster" })), [roasters]);
 
   const [machineId, chargeTempC, firstCrack, drop, dropTempC] = useWatch({
     control,
@@ -159,27 +163,27 @@ export function RoastForm({ roasters }: { roasters: RoasterOption[] }) {
           <CardTitle>Machine</CardTitle>
         </CardHeader>
         <div className="grid gap-4 sm:grid-cols-2">
-          {roasters.length > 0 && (
-            <Field label="Roaster" required htmlFor="machineId">
-              <Select
-                id="machineId"
-                {...register("machineId", {
-                  onChange: (e) => {
-                    const match = roasters.find((r) => r.id === e.target.value);
-                    setValue("machineName", match?.name ?? "", { shouldValidate: !!match });
-                  },
-                })}
-              >
-                {roasters.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                  </option>
-                ))}
-                <option value="">Other…</option>
-              </Select>
-            </Field>
-          )}
-          {(roasters.length === 0 || !machineId) && (
+          <Field label="Roaster" required htmlFor="machineId">
+            <Controller
+              control={control}
+              name="machineId"
+              render={({ field }) => (
+                <EquipmentSelect
+                  id="machineId"
+                  value={field.value ?? ""}
+                  onChange={(id, item) => {
+                    field.onChange(id);
+                    setValue("machineName", item?.name ?? "", { shouldValidate: !!item });
+                  }}
+                  options={roasterOptions}
+                  categories={["roaster"]}
+                  label="roaster"
+                  noneLabel="Other…"
+                />
+              )}
+            />
+          </Field>
+          {!machineId && (
             <Field label="Machine name" required htmlFor="machineName" error={errors.machineName?.message}>
               <Input id="machineName" placeholder="Aillio Bullet R2" aria-invalid={!!errors.machineName} {...register("machineName")} />
             </Field>
@@ -248,7 +252,19 @@ export function RoastForm({ roasters }: { roasters: RoasterOption[] }) {
         />
         {errors.flavorTags?.message && <p className="mt-2 text-xs text-amber">{errors.flavorTags.message}</p>}
         <Field label="Notes" htmlFor="notes" className="mt-5">
-          <Textarea id="notes" placeholder="Gas cut at 7:40, airflow up after FC…" {...register("notes")} />
+          <Controller
+            control={control}
+            name="notes"
+            render={({ field }) => (
+              <NotesEditor
+                id="notes"
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                placeholder="Gas cut at 7:40, airflow up after FC…"
+                maxLength={4000}
+              />
+            )}
+          />
         </Field>
       </Card>
 

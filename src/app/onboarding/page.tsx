@@ -24,7 +24,7 @@ export default async function OnboardingPage() {
         <p className="mt-2 text-sm text-muted">
           {editing
             ? "Update how you show up in the feed, or add gear to your shelf."
-            : "Three quick steps and you're logging extractions with the community."}
+            : "Three quick steps (only your name and handle are required) and you're logging extractions with the community."}
         </p>
       </header>
       <OnboardingForm

@@ -13,7 +13,7 @@ export const roastSchema = z
     dropSec: z.coerce.number().int().positive("Enter drop time"),
     dropTempC: z.coerce.number().min(180, "Min 180 °C").max(250, "Max 250 °C"),
     flavorTags: z.array(z.string().trim().min(1)).max(30, "Up to 30 tags").default([]),
-    notes: z.string().trim().max(2000).optional().transform((v) => v || undefined),
+    notes: z.string().trim().max(4000).optional().transform((v) => v || undefined),
   })
   .refine((r) => r.dropSec > r.firstCrackSec, {
     message: "Drop must come after first crack",

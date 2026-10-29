@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 type Focus = "brew" | "roast" | "both";
 type Gear = { category: string; name: string; blurb: string };
 
-const STEPS = ["Profile", "Credentials", "Equipment"] as const;
+const STEPS = ["Profile", "Credentials", "Equipment (optional)"] as const;
 const CATEGORIES = ["grinder", "brewer", "espresso", "roaster", "kettle", "scale"];
 const HANDLE_RE = /^[a-z0-9_]{3,20}$/;
 
@@ -220,6 +220,18 @@ export function OnboardingForm({
 
             {step === 2 && (
               <>
+                <div className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-teal/30 bg-teal/5 p-4">
+                  <div className="min-w-0">
+                    <h2 className="text-base font-semibold text-sterile">
+                      Your equipment <span className="font-normal text-muted">(optional)</span>
+                    </h2>
+                    <p className="mt-0.5 text-xs text-muted">Totally optional. You can add gear to your shelf any time later.</p>
+                  </div>
+                  <Button type="button" variant="outline" onClick={() => submit(true)} disabled={pending || !canAdvanceProfile}>
+                    {pending ? <Loader2 className="animate-spin" /> : <ArrowRight />}
+                    Skip for now
+                  </Button>
+                </div>
                 <p className="text-sm text-muted">
                   {existingEquipmentCount > 0
                     ? `You already have ${existingEquipmentCount} item${existingEquipmentCount === 1 ? "" : "s"} on your shelf. Add more below, or skip.`
@@ -293,16 +305,21 @@ export function OnboardingForm({
           <span />
         )}
         {step < 2 ? (
-          <Button type="button" onClick={() => go(step + 1)} disabled={step === 0 && !canAdvanceProfile}>
-            Continue <ArrowRight />
-          </Button>
-        ) : (
           <div className="flex items-center gap-2">
-            {gear.length === 0 && (
-              <Button type="button" variant="ghost" onClick={() => submit(true)} disabled={pending}>
+            {step === 1 && (
+              <Button type="button" variant="ghost" onClick={() => go(2)}>
                 Skip
               </Button>
             )}
+            <Button type="button" onClick={() => go(step + 1)} disabled={step === 0 && !canAdvanceProfile}>
+              Continue <ArrowRight />
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="ghost" onClick={() => submit(true)} disabled={pending || !canAdvanceProfile}>
+              Skip equipment
+            </Button>
             <Button type="button" onClick={() => submit(false)} disabled={pending || !canAdvanceProfile}>
               {pending ? <Loader2 className="animate-spin" /> : <Sparkles />}
               {editing ? "Save profile" : "Finish setup"}

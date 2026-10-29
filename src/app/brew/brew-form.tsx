@@ -10,7 +10,9 @@ import { createBrew } from "@/app/actions/brew";
 import { FlavorWheelPicker, notesToPaths, pathsToNotes } from "@/components/flavor-wheel-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, Input, Select, Textarea } from "@/components/ui/form-controls";
+import { EquipmentSelect } from "@/components/equipment-select";
+import { NotesEditor } from "@/components/notes-editor";
+import { Field, Input, Select } from "@/components/ui/form-controls";
 import { cn } from "@/lib/utils";
 import { BREW_METHODS, METHOD_LABELS, brewSchema, formatRatio, parseDuration } from "./schema";
 
@@ -152,26 +154,38 @@ export function BrewForm({ brewers, grinders }: { brewers: EquipmentOption[]; gr
             <Field
               label={method === "espresso" ? "Machine" : "Brewer"}
               htmlFor="brewerId"
-              hint={brewers.length ? undefined : "Add gear on your profile to pick it here."}
+              hint={brewers.length ? undefined : "Pick “+ Add new equipment…” to add your gear."}
             >
-              <Select id="brewerId" {...register("brewerId")}>
-                <option value="">None</option>
-                {brewers.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.name}
-                  </option>
-                ))}
-              </Select>
+              <Controller
+                control={control}
+                name="brewerId"
+                render={({ field }) => (
+                  <EquipmentSelect
+                    id="brewerId"
+                    value={field.value ?? ""}
+                    onChange={(v) => field.onChange(v)}
+                    options={brewers}
+                    categories={method === "espresso" ? ["espresso", "brewer"] : ["brewer", "espresso"]}
+                    label={method === "espresso" ? "machine" : "brewer"}
+                  />
+                )}
+              />
             </Field>
             <Field label="Grinder" htmlFor="grinderId">
-              <Select id="grinderId" {...register("grinderId")}>
-                <option value="">None</option>
-                {grinders.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.name}
-                  </option>
-                ))}
-              </Select>
+              <Controller
+                control={control}
+                name="grinderId"
+                render={({ field }) => (
+                  <EquipmentSelect
+                    id="grinderId"
+                    value={field.value ?? ""}
+                    onChange={(v) => field.onChange(v)}
+                    options={grinders}
+                    categories={["grinder"]}
+                    label="grinder"
+                  />
+                )}
+              />
             </Field>
           </div>
 
@@ -221,7 +235,18 @@ export function BrewForm({ brewers, grinders }: { brewers: EquipmentOption[]; gr
         />
         {errors.flavorTags && <p className="mt-2 text-xs text-amber">{errors.flavorTags.message}</p>}
         <Field label="Notes" htmlFor="notes" error={errors.notes?.message} className="mt-5">
-          <Textarea id="notes" placeholder="Bright, juicy acidity; long cocoa finish…" maxLength={1000} {...register("notes")} />
+          <Controller
+            control={control}
+            name="notes"
+            render={({ field }) => (
+              <NotesEditor
+                id="notes"
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                placeholder="Bright, juicy acidity; long cocoa finish…"
+              />
+            )}
+          />
         </Field>
       </Card>
 

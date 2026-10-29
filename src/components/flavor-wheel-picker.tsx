@@ -9,11 +9,17 @@ import {
   CATEGORY_COLORS,
   SCA_WHEEL,
   TAG_SEP,
+  displayLabel,
+  displayPath,
+  displaySegments,
+  dominantCategoryColor,
   findNode,
+  isLightColor,
   nodeColor,
-  tagLabel,
+  readableTint,
   type FlavorNode,
 } from "@/lib/sca-wheel";
+import { BorderGlow } from "@/components/border-glow";
 import { LexiconDrawer } from "@/components/lexicon-drawer";
 
 export type FlavorNote = { category: string; subCategory?: string; attribute?: string; color: string };
@@ -32,7 +38,7 @@ export function pathsToNotes(paths: string[]): FlavorNote[] {
 }
 
 const pathToNote = (p: string) => pathsToNotes([p])[0];
-const crumbs = (p: string) => p.split(TAG_SEP).join(" › ");
+const crumbs = (p: string) => displayPath(p);
 
 /**
  * Center-out SCA flavor wheel picker: start at the nine core categories, drill
@@ -77,7 +83,7 @@ export function FlavorWheelPicker({
   };
 
   const q = query.trim().toLowerCase();
-  const results = q ? ALL_WHEEL_PATHS.filter((p) => tagLabel(p).toLowerCase().includes(q)).slice(0, 40) : [];
+  const results = q ? ALL_WHEEL_PATHS.filter((p) => displayLabel(p).toLowerCase().includes(q)).slice(0, 40) : [];
 
   // Category mix for the profile bar.
   const mix = useMemo(() => {
@@ -88,8 +94,10 @@ export function FlavorWheelPicker({
 
   const tierLabel = ["Core category", "Subcategory", "Descriptor"][trail.length] ?? "Descriptor";
 
+  const glowColor = dominantCategoryColor(paths) ?? "#47918F";
+
   return (
-    <div className="flex flex-col gap-4">
+    <BorderGlow className="flex flex-col gap-4" glowColor={glowColor} radius={16}>
       {/* Top row: lexicon link + count */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <button
@@ -123,7 +131,7 @@ export function FlavorWheelPicker({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={reduce ? undefined : { opacity: 0, scale: 0.85 }}
                   className="inline-flex items-center overflow-hidden rounded-full border text-xs font-medium text-sterile"
-                  style={{ borderColor: `${note.color}99`, backgroundColor: `${note.color}22` }}
+                  style={{ borderColor: `${note.color}99`, backgroundColor: `${note.color}1A` }}
                 >
                   <button
                     type="button"
@@ -132,8 +140,8 @@ export function FlavorWheelPicker({
                     className="inline-flex items-center gap-1.5 py-1 pl-2.5 pr-1 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal/60"
                   >
                     <span className="size-2 rounded-full" style={{ backgroundColor: note.color }} aria-hidden />
-                    {[note.category, note.subCategory, note.attribute].filter(Boolean).map((part, i, arr) => (
-                      <span key={i} className={i < arr.length - 1 ? "text-muted" : undefined}>
+                    {displaySegments(path).map((part, i, arr) => (
+                      <span key={i} className={i < arr.length - 1 ? "text-muted" : "text-sterile"}>
                         {part}
                         {i < arr.length - 1 && <span className="mx-0.5 text-muted/60">›</span>}
                       </span>
@@ -215,7 +223,7 @@ export function FlavorWheelPicker({
                     >
                       <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: nodeColor(path) }} aria-hidden />
                       <span className="flex-1 truncate">
-                        {tagLabel(path)}
+                        {displayLabel(path)}
                         <span className="ml-1.5 text-xs text-muted">{crumbs(path.split(TAG_SEP).slice(0, -1).join(TAG_SEP))}</span>
                       </span>
                       {on ? <Check className="size-4 text-teal-bright" aria-hidden /> : <Plus className="size-4 text-muted" aria-hidden />}
@@ -253,6 +261,8 @@ export function FlavorWheelPicker({
               {trail.map((name, i) => {
                 const p = trail.slice(0, i + 1).join(TAG_SEP);
                 const last = i === trail.length - 1;
+                // Collapse a repeated name ("Floral > Floral") unless it is the current tier.
+                if (!last && i > 0 && name === trail[i - 1]) return null;
                 return (
                   <span key={p} className="inline-flex items-center gap-1">
                     <ChevronRight className="size-3.5 text-muted/60" aria-hidden />
@@ -261,9 +271,9 @@ export function FlavorWheelPicker({
                       onClick={() => setTrail(trail.slice(0, i + 1))}
                       aria-current={last ? "page" : undefined}
                       className="rounded px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/60"
-                      style={{ color: last ? nodeColor(p) : undefined }}
+                      style={{ color: last ? readableTint(nodeColor(p)) : undefined }}
                     >
-                      {name}
+                      {displayLabel(p)}
                     </button>
                   </span>
                 );
@@ -277,7 +287,9 @@ export function FlavorWheelPicker({
                 onClick={() => toggle(branchPath)}
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/60 disabled:opacity-40",
-                  selected.has(branchPath) ? "text-obsidian" : "text-sterile hover:bg-titanium-2",
+                  selected.has(branchPath)
+                    ? isLightColor(nodeColor(branchPath)) ? "text-obsidian" : "text-sterile"
+                    : "text-sterile hover:bg-titanium-2",
                 )}
                 style={{
                   borderColor: nodeColor(branchPath),
@@ -285,7 +297,7 @@ export function FlavorWheelPicker({
                 }}
               >
                 {selected.has(branchPath) ? <Check className="size-3.5" aria-hidden /> : <Plus className="size-3.5" aria-hidden />}
-                {selected.has(branchPath) ? "Selected" : `Select “${trail.at(-1)}”`}
+                {selected.has(branchPath) ? "Selected" : `Select “${displayLabel(branchPath)}”`}
               </button>
             )}
           </div>
@@ -334,7 +346,7 @@ export function FlavorWheelPicker({
       )}
 
       <LexiconDrawer open={lexiconOpen} onOpenChange={setLexiconOpen} focusPath={focus ?? (branchPath || null)} />
-    </div>
+    </BorderGlow>
   );
 }
 
@@ -360,7 +372,9 @@ function WheelTile({
   onToggle: () => void;
 }) {
   const color = nodeColor(path);
+  const label = displayLabel(path);
   const count = node.children?.length;
+  const onColor = isLightColor(color) ? "text-obsidian" : "text-sterile";
 
   const face = (
     <>
@@ -376,7 +390,7 @@ function WheelTile({
       />
       <span className="relative flex items-center gap-2">
         <span className="size-3 shrink-0 rounded-full ring-2 ring-black/30" style={{ backgroundColor: color }} aria-hidden />
-        <span className={cn("font-semibold leading-tight text-sterile", large ? "text-base" : "text-sm")}>{node.name}</span>
+        <span className={cn("font-semibold leading-tight text-sterile", large ? "text-base" : "text-sm")}>{label}</span>
       </span>
       {onOpen && (
         <span className="relative mt-auto inline-flex items-center gap-0.5 text-[11px] text-muted">
@@ -409,7 +423,7 @@ function WheelTile({
           style={selected ? { backgroundColor: color, borderColor: color } : undefined}
           aria-hidden
         >
-          {selected ? <Check className="size-3.5 text-obsidian" /> : <Plus className="size-3.5 text-muted" />}
+          {selected ? <Check className={cn("size-3.5", onColor)} /> : <Plus className="size-3.5 text-muted" />}
         </span>
       </button>
     );
@@ -417,20 +431,20 @@ function WheelTile({
 
   return (
     <div className="relative">
-      <button type="button" onClick={onOpen} aria-label={`Open ${node.name}`} className={base} style={ring}>
+      <button type="button" onClick={onOpen} aria-label={`Open ${label}`} className={base} style={ring}>
         {face}
       </button>
       <button
         type="button"
         aria-pressed={selected}
-        aria-label={selected ? `Remove ${node.name}` : `Select ${node.name}`}
-        title={selected ? `Remove ${node.name}` : `Select “${node.name}”`}
+        aria-label={selected ? `Remove ${label}` : `Select ${label}`}
+        title={selected ? `Remove ${label}` : `Select “${label}”`}
         disabled={!selected && disabled}
         onClick={onToggle}
         className="absolute right-2 top-2 grid size-7 place-items-center rounded-full border border-line bg-obsidian/70 text-muted transition-colors hover:text-sterile focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/70 disabled:opacity-40"
         style={selected ? { backgroundColor: color, borderColor: color } : undefined}
       >
-        {selected ? <Check className="size-3.5 text-obsidian" aria-hidden /> : <Plus className="size-3.5" aria-hidden />}
+        {selected ? <Check className={cn("size-3.5", onColor)} aria-hidden /> : <Plus className="size-3.5" aria-hidden />}
       </button>
     </div>
   );

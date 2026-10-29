@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Coffee, Flame, Star } from "lucide-react";
+import { BorderGlow } from "@/components/border-glow";
 import { FlavorTags } from "@/components/flavor-tags";
+import { tagColor } from "@/lib/sca-wheel";
 import { RoastCurveChart } from "@/components/roast-curve-chart";
 import { cn, timeAgo } from "@/lib/utils";
 import { developmentPct, fmtTime, type CurvePoint } from "@/lib/mock-curve";
@@ -55,13 +57,13 @@ export function FeedItemCard({ item, className }: { item: FeedItem; className?: 
   const label = isBrew ? `${item.method} of ${item.beanName}` : `Roast of ${item.beanName}`;
 
   return (
+    <BorderGlow
+      glowColor={item.flavorTags[0] ? tagColor(item.flavorTags[0]) : "#47918F"}
+      radius={16}
+      className={cn("h-full transition-transform duration-200 ease-out hover:-translate-y-[3px] motion-reduce:transform-none", className)}
+    >
     <motion.article
-      whileHover={{ y: -3 }}
-      transition={{ type: "spring", stiffness: 400, damping: 28 }}
-      className={cn(
-        "glass group relative flex flex-col gap-4 rounded-2xl p-5 transition-colors hover:border-teal/40",
-        className,
-      )}
+      className="glass group relative flex h-full flex-col gap-4 rounded-2xl p-5 transition-colors hover:border-teal/40"
     >
       {/* Overlay link makes the whole card clickable without nesting anchors. */}
       <Link href={href} aria-label={`View ${label}`} className="absolute inset-0 z-0 rounded-2xl" />
@@ -144,5 +146,6 @@ export function FeedItemCard({ item, className }: { item: FeedItem; className?: 
         )}
       </footer>
     </motion.article>
+    </BorderGlow>
   );
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { clerkEnabled } from "@/lib/auth";
-import { AuroraBackground } from "@/components/aurora-background";
+import { GradientWavesBackground } from "@/components/gradient-waves-background";
 import { Nav } from "@/components/nav";
 import "./globals.css";
 
@@ -50,7 +50,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-dvh bg-obsidian font-sans text-sterile antialiased`}
       >
-        <AuroraBackground />
+        <GradientWavesBackground />
         <Nav />
         <main className="relative z-10 mx-auto max-w-6xl px-4 py-8">{children}</main>
       </body>

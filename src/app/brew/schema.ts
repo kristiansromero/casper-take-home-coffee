@@ -41,7 +41,7 @@ export const brewSchema = z.object({
     .nullish()
     .transform((v) => v ?? undefined),
   flavorTags: z.array(z.string().min(1).max(120)).max(30, "Up to 30 flavor tags"),
-  notes: z.string().trim().max(1000, "Notes must be 1000 characters or fewer").optional(),
+  notes: z.string().trim().max(4000, "Notes must be 4000 characters or fewer").optional(),
 });
 
 export type BrewInput = z.input<typeof brewSchema>;

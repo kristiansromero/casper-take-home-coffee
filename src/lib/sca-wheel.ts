@@ -279,3 +279,64 @@ export function findNode(path: string): FlavorNode | undefined {
   }
   return found;
 }
+
+// ---------------------------------------------------------------------------
+// Display helpers. The wheel repeats some names one tier down ("Floral > Floral
+// > Rose", "Green/Vegetative > Green/Vegetative > Peapod"). Stored paths keep
+// the full form; these helpers collapse the repeat for display.
+// ---------------------------------------------------------------------------
+
+/** Suffix shown on a subcategory that shares its parent's name, when it is the last segment. */
+export const GROUP_SUFFIX = " (group)";
+
+/**
+ * Display segments for a path: a segment equal to its parent is dropped, except
+ * when it is the final segment, where it becomes "Floral (group)" so the Tier-2
+ * node stays distinguishable from the Tier-1 category.
+ *   "Floral > Floral > Rose" -> ["Floral", "Rose"]
+ *   "Floral > Floral"        -> ["Floral (group)"]
+ *   "Floral"                 -> ["Floral"]
+ */
+export function displaySegments(path: string): string[] {
+  const parts = path ? path.split(TAG_SEP) : [];
+  const out: string[] = [];
+  parts.forEach((name, i) => {
+    if (i > 0 && name === parts[i - 1]) {
+      if (i === parts.length - 1) out[out.length - 1] = `${name}${GROUP_SUFFIX}`;
+      return;
+    }
+    out.push(name);
+  });
+  return out;
+}
+
+/** Human path, e.g. "Floral › Rose". */
+export const displayPath = (path: string, sep = " › ") => displaySegments(path).join(sep);
+
+/** Last display segment, e.g. "Rose" or "Floral (group)". */
+export const displayLabel = (path: string) => displaySegments(path).at(-1) ?? path;
+
+/** Readable text tint for a (possibly very light or very dark) node color on the dark UI. */
+export const readableTint = (color: string) => `color-mix(in oklab, ${color} 55%, #F2F4F5)`;
+
+/** True when a hex color is light enough that dark text should sit on it. */
+export function isLightColor(hex: string): boolean {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return false;
+  const n = parseInt(m[1], 16);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55;
+}
+
+/** Category color of the most frequent core category among paths (ties: first seen), or undefined. */
+export function dominantCategoryColor(paths: string[]): string | undefined {
+  const counts = new Map<string, number>();
+  let best: string | undefined;
+  for (const p of paths) {
+    const c = tagCategory(p);
+    const n = (counts.get(c) ?? 0) + 1;
+    counts.set(c, n);
+    if (!best || n > (counts.get(best) ?? 0)) best = c;
+  }
+  return best ? CATEGORY_COLORS[best] : undefined;
+}
