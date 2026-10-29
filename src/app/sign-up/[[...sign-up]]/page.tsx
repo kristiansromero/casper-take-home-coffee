@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { SignUp } from "@clerk/nextjs";
 import { clerkEnabled } from "@/lib/auth";
 import { DemoModeCard } from "@/components/demo-mode-card";
@@ -13,21 +12,13 @@ export default function SignUpPage() {
       <AuthBrandPanel heading="Join the brew log." sub="Free forever for logging. Takes under a minute." />
       <div className="flex flex-col items-center justify-center gap-4">
         {clerkEnabled ? (
-          <>
-            <SignUp
-              path="/sign-up"
-              routing="path"
-              signInUrl="/sign-in"
-              forceRedirectUrl="/onboarding"
-              appearance={clerkAuthAppearance}
-            />
-            <p className="text-sm text-muted">
-              Already brewing?{" "}
-              <Link href="/sign-in" className="font-medium text-teal hover:text-teal-bright">
-                Log in
-              </Link>
-            </p>
-          </>
+          <SignUp
+            path="/sign-up"
+            routing="path"
+            signInUrl="/sign-in"
+            forceRedirectUrl="/onboarding"
+            appearance={clerkAuthAppearance}
+          />
         ) : (
           <DemoModeCard />
         )}

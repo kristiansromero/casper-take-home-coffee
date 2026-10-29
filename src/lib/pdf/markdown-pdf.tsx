@@ -412,9 +412,18 @@ function CurveChart({ curve }: { curve: CurvePoint[] }) {
   );
 }
 
+// The header band already shows the title, so drop a leading "# Title" from the body.
+function withoutLeadingTitle(tokens: Token[]): Token[] {
+  const first = tokens.findIndex((t) => t.type !== "space");
+  const head = tokens[first];
+  return head?.type === "heading" && (head as Tokens.Heading).depth === 1
+    ? [...tokens.slice(0, first), ...tokens.slice(first + 1)]
+    : tokens;
+}
+
 // ---------- document ----------
 function MarkdownDoc({ title, subtitle, markdown, meta, curve, generated }: RenderMarkdownPdfInput & { generated: string }) {
-  const tokens = marked.lexer(preprocessMath(markdown), { gfm: true });
+  const tokens = withoutLeadingTitle(marked.lexer(preprocessMath(markdown), { gfm: true }));
   return (
     <Document title={clean(title)} author="BeanWater" creator="BeanWater" producer="BeanWater">
       <Page size="A4" style={s.page}>

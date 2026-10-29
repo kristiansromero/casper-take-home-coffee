@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { SignIn } from "@clerk/nextjs";
 import { clerkEnabled } from "@/lib/auth";
 import { DemoModeCard } from "@/components/demo-mode-card";
@@ -13,15 +12,7 @@ export default function SignInPage() {
       <AuthBrandPanel heading="Welcome back." sub="Pick up where your last extraction left off." />
       <div className="flex flex-col items-center justify-center gap-4">
         {clerkEnabled ? (
-          <>
-            <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" appearance={clerkAuthAppearance} />
-            <p className="text-sm text-muted">
-              New here?{" "}
-              <Link href="/sign-up" className="font-medium text-teal hover:text-teal-bright">
-                Create an account
-              </Link>
-            </p>
-          </>
+          <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" appearance={clerkAuthAppearance} />
         ) : (
           <DemoModeCard />
         )}

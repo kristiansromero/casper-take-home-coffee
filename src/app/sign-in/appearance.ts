@@ -7,7 +7,5 @@ export const clerkAuthAppearance = {
     headerTitle: "text-[#E4E7EB]",
     formButtonPrimary: "bg-[#47918F] hover:bg-[#5BB3B0] text-[#0B0E10] shadow-none",
     footerActionLink: "text-[#47918F] hover:text-[#5BB3B0]",
-    // The page renders its own sign-in / sign-up cross-link.
-    footerAction: "hidden",
   },
 };
