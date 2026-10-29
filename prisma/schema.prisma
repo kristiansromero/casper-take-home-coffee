@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model User {
+  id          String       @id @default(cuid())
+  clerkId     String?      @unique
+  email       String       @unique
+  name        String
+  handle      String       @unique
+  credentials String?
+  bio         String?
+  isPro       Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  equipment   Equipment[]
+  extractions Extraction[]
+  roasts      Roast[]
+  followers   Follow[]     @relation("following")
+  following   Follow[]     @relation("follower")
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+}
+
+model Roaster {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  location String?
+  beans    Bean[]
+}
+
+model Bean {
+  id          String       @id @default(cuid())
+  name        String
+  roasterId   String
+  roaster     Roaster      @relation(fields: [roasterId], references: [id])
+  origin      String?
+  varietal    String?
+  process     String?
+  elevation   String?
+  createdAt   DateTime     @default(now())
+  extractions Extraction[]
+  roasts      Roast[]
+
+  @@unique([name, roasterId])
+}
+
+model Equipment {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    String // grinder | brewer | espresso | roaster | kettle | scale
+  name        String
+  blurb       String?
+  extractions Extraction[] @relation("brewer")
+  grinds      Extraction[] @relation("grinder")
+  roasts      Roast[]
+}
+
+model Extraction {
+  id         String     @id @default(cuid())
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  beanId     String
+  bean       Bean       @relation(fields: [beanId], references: [id])
+  method     String // espresso | pour-over | aeropress | immersion
+  brewerId   String?
+  brewer     Equipment? @relation("brewer", fields: [brewerId], references: [id])
+  grinderId  String?
+  grinder    Equipment? @relation("grinder", fields: [grinderId], references: [id])
+  doseG      Float
+  yieldG     Float
+  grind      String
+  timeSec    Int
+  tempC      Float
+  rating     Int?
+  flavorTags String[]
+  notes      String?
+  createdAt  DateTime   @default(now())
+
+  @@index([createdAt])
+}
+
+model Roast {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  beanId        String
+  bean          Bean       @relation(fields: [beanId], references: [id])
+  machineId     String?
+  machine       Equipment? @relation(fields: [machineId], references: [id])
+  machineName   String
+  batchSizeG    Float
+  chargeTempC   Float
+  firstCrackSec Int
+  dropSec       Int
+  dropTempC     Float
+  flavorTags    String[]
+  notes         String?
+  curve         Json
+  createdAt     DateTime   @default(now())
+
+  @@index([createdAt])
+}
