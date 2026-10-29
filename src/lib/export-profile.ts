@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+import type { RenderMarkdownPdfInput } from "@/lib/pdf/markdown-pdf";
 import { developmentPct, fmtTime, type CurvePoint } from "@/lib/mock-curve";
 
 export type ExportableRoast = {
@@ -126,14 +127,40 @@ export function buildMarkdown(r: ExportableRoast): string {
   ].join("\n");
 }
 
-/** Bundle the roast as `<slug>.alog` + `<slug>.md` in a zip and trigger a browser download. */
+/** Render the branded PDF; returns null (zip still downloads) if react-pdf fails. */
+async function tryRenderPdf(input: RenderMarkdownPdfInput): Promise<Blob | null> {
+  try {
+    const { renderMarkdownPdf } = await import("@/lib/pdf/markdown-pdf");
+    return await renderMarkdownPdf(input);
+  } catch (err) {
+    console.warn("BeanWater: PDF generation failed; exporting zip without PDF.", err);
+    return null;
+  }
+}
+
+/** Bundle the roast as `<slug>.alog` + `<slug>.md` + `<slug>.pdf` in a zip and trigger a browser download. */
 export async function downloadRoastProfile(roast: ExportableRoast) {
   const date = new Date(roast.createdAt).toISOString().slice(0, 10);
   const slug = slugify(`${roast.beanName}-${date}`);
 
   const zip = new JSZip();
   zip.file(`${slug}.alog`, buildAlog(roast));
-  zip.file(`${slug}.md`, buildMarkdown(roast));
+  const md = buildMarkdown(roast);
+  zip.file(`${slug}.md`, md);
+  const pdfBlob = await tryRenderPdf({
+    title: roast.beanName,
+    subtitle: `Roast profile · ${roast.roasterName} · ${roast.machineName} · ${date}`,
+    markdown: md,
+    meta: [
+      { label: "Charge", value: `${roast.chargeTempC} °C` },
+      { label: "First crack", value: fmtTime(roast.firstCrackSec) },
+      { label: "Drop", value: `${fmtTime(roast.dropSec)} @ ${roast.dropTempC} °C` },
+      { label: "Development", value: `${developmentPct(roast.firstCrackSec, roast.dropSec)}%` },
+      { label: "Batch", value: `${roast.batchSizeG} g` },
+    ],
+    curve: roast.curve,
+  });
+  if (pdfBlob) zip.file(`${slug}.pdf`, pdfBlob);
   const blob = await zip.generateAsync({ type: "blob" });
 
   const url = URL.createObjectURL(blob);
@@ -217,11 +244,27 @@ export function buildBennyAlog(p: BennyPackage): string {
   });
 }
 
-/** Zip `roast-profile-strategy.md` + `profile.alog` and trigger a browser download. */
+/** Zip `roast-profile-strategy.md` + `.pdf` + `profile.alog` and trigger a browser download. */
 export async function downloadBennyPackage(p: BennyPackage) {
   const zip = new JSZip();
-  zip.file("roast-profile-strategy.md", buildBennyMarkdown(p));
+  const md = buildBennyMarkdown(p);
+  zip.file("roast-profile-strategy.md", md);
   zip.file("profile.alog", buildBennyAlog(p));
+  const m = p.milestones;
+  const pdfBlob = await tryRenderPdf({
+    title: `Roast strategy — ${p.beanName}`,
+    subtitle: `Benny AI profile · ${p.machineName} · ${p.batchSizeG} g · ${p.targetRoast} roast`,
+    markdown: md,
+    meta: [
+      { label: "Charge", value: `${m.chargeTempC} °C` },
+      { label: "Dry end", value: fmtTime(m.dryEndSec) },
+      { label: "First crack", value: fmtTime(m.firstCrackSec) },
+      { label: "Drop", value: `${fmtTime(m.dropSec)} @ ${m.dropTempC} °C` },
+      { label: "Development", value: `${m.developmentPct}%` },
+    ],
+    curve: p.curve,
+  });
+  if (pdfBlob) zip.file("roast-profile-strategy.pdf", pdfBlob);
   const blob = await zip.generateAsync({ type: "blob" });
 
   const url = URL.createObjectURL(blob);

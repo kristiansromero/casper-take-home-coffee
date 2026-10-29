@@ -266,7 +266,7 @@ function ErrorBanner({ error }: { error: Extract<GenerateResult, { ok: false }> 
     >
       <Icon className="mt-0.5 size-4 shrink-0" />
       <div>
-        <p className="font-medium">{offline ? "Benny is offline" : error.code === "LIMIT" ? "Out of free generations" : "Something went wrong"}</p>
+        <p className="font-medium">{offline ? "Benny is offline" : error.code === "LIMIT" ? "Out of free generations" : error.code === "RATE_LIMITED" ? "Benny needs a breather" : "Something went wrong"}</p>
         <p className="mt-0.5 text-xs opacity-90">
           {error.error}
           {offline ? " No credit was used." : ""}

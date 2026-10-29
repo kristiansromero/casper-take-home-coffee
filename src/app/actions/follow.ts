@@ -3,10 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getViewer } from "@/lib/auth";
+import { RATE_LIMITS, rateLimit, rateLimitSubject, rateLimitedResult } from "@/lib/rate-limit";
 
 export type FollowResult =
   | { ok: true; following: boolean; followers: number }
-  | { ok: false; error: string };
+  | { ok: false; error: string; code?: "RATE_LIMITED" };
 
 /** Follow the target if not already following, otherwise unfollow. Never throws. */
 export async function toggleFollow(
@@ -15,6 +16,8 @@ export async function toggleFollow(
   try {
     const viewer = await getViewer();
     if (!viewer) return { ok: false, error: "Sign in to follow brewers." };
+    const rl = await rateLimit("toggleFollow", await rateLimitSubject(viewer.id), RATE_LIMITS.toggleFollow);
+    if (!rl.ok) return rateLimitedResult(rl.retryAfterSec);
     if (typeof targetUserId !== "string" || !targetUserId)
       return { ok: false, error: "Unknown brewer." };
     if (targetUserId === viewer.id)

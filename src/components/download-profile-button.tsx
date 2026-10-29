@@ -20,7 +20,7 @@ export function DownloadProfileButton({ roast, className }: { roast: ExportableR
   return (
     <Button variant="outline" onClick={onClick} disabled={busy} className={className}>
       {busy ? <Loader2 className="animate-spin" /> : <Download />}
-      Download profile (.zip)
+      {busy ? "Preparing…" : "Download profile (.zip)"}
     </Button>
   );
 }

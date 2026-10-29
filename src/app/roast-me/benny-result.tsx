@@ -84,7 +84,7 @@ export function BennyResult({ run }: { run: BennyRun }) {
           </div>
         </div>
         <Button type="button" variant="outline" size="sm" onClick={onExport} disabled={exporting}>
-          {exporting ? <Loader2 className="animate-spin" /> : <Download />} Export Roast Package (.zip)
+          {exporting ? <Loader2 className="animate-spin" /> : <Download />} {exporting ? "Preparing…" : "Export Roast Package (.zip)"}
         </Button>
       </div>
 

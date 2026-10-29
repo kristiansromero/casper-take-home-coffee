@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getViewer } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { RATE_LIMITS, rateLimit, rateLimitSubject, rateLimitedResult } from "@/lib/rate-limit";
 
 const EQUIPMENT_CATEGORIES = ["grinder", "brewer", "espresso", "roaster", "kettle", "scale"] as const;
 
@@ -17,7 +18,7 @@ export type CreateEquipmentInput = { category: string; name: string; blurb?: str
 
 export type CreateEquipmentResult =
   | { ok: true; item: { id: string; name: string; category: string } }
-  | { ok: false; error: string; fieldErrors?: Record<string, string[]> };
+  | { ok: false; error: string; fieldErrors?: Record<string, string[]>; code?: "RATE_LIMITED" };
 
 export async function createEquipment(input: CreateEquipmentInput): Promise<CreateEquipmentResult> {
   const parsed = equipmentSchema.safeParse(input);
@@ -31,6 +32,8 @@ export async function createEquipment(input: CreateEquipmentInput): Promise<Crea
   try {
     const viewer = await getViewer();
     if (!viewer) return { ok: false, error: "Sign in to add equipment." };
+    const rl = await rateLimit("createEquipment", await rateLimitSubject(viewer.id), RATE_LIMITS.createEquipment);
+    if (!rl.ok) return rateLimitedResult(rl.retryAfterSec);
 
     const { category, name, blurb } = parsed.data;
     const item = await db.equipment.create({

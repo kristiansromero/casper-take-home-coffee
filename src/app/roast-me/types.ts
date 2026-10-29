@@ -44,7 +44,7 @@ export type GenerateResult =
   | { ok: true; run: BennyRun; creditsLeft: number | null }
   | {
       ok: false;
-      code?: "LIMIT" | "OFFLINE" | "AUTH" | "INVALID" | "ERROR";
+      code?: "LIMIT" | "OFFLINE" | "AUTH" | "INVALID" | "ERROR" | "RATE_LIMITED";
       error: string;
       fieldErrors?: Record<string, string[]>;
     };

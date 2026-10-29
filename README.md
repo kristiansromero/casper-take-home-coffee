@@ -20,18 +20,19 @@ Home brewers and roasters who want to remember what worked, and learn from peopl
 | **Record Roast** (`/roast`) | Machine, batch, charge temp, first crack, drop time/temp, live development % and simulated curve preview. |
 | **Detail pages** | `/brew/[id]`, `/roast/[id]` with full parameters, equipment blurbs, BT/ET/RoR curve and a `.alog` + `.md` ZIP export. |
 | **Profiles** (`/profile/[id]`) | Follow / unfollow, follower & following counts, credentials, equipment shelf with per-item brew/roast counts, bean history, past logs. |
-| **Benny** (`/roast-me`) | AI roast profile for your bean on a Skywalker V2, grounded on similar community roasts in the database. Strategy write-up, milestones, curve chart and a downloadable roast package (`profile.alog` + `roast-profile-strategy.md`). 3 free generations per account, enforced atomically server-side. |
+| **Benny** (`/roast-me`) | AI roast profile for your bean on a Skywalker V2, grounded on similar community roasts in the database. Strategy write-up, milestones, curve chart and a downloadable roast package (`profile.alog`, `roast-profile-strategy.md` and a branded PDF). 3 free generations per account (Pro accounts, like seeded Mara, are unlimited), enforced atomically server-side. |
 
 ## What's incomplete
 
 - **`.alog` upload** is shown as a locked Pro feature; curves on logged roasts are simulated from milestones (`src/lib/mock-curve.ts`).
 - **Pro / billing** is not wired — after 3 Benny generations the upgrade card is a placeholder.
 - The exported `.alog` imitates Artisan's format but is not guaranteed to load in Artisan.
-- No editing/deleting of posts, comments or likes yet.
+- No editing/deleting of posts, and no comments or likes.
+- Auth runs on a Clerk **development** instance (shows a "Development mode" badge; fine for review, would move to a production instance with a custom domain).
 
 ## Demo accounts
 
-Seeded fictional profiles (plus 5 community members, 5 roasters, 8 beans, 12 logs): **Mara Quintero** (`reviewer1@beanwater.demo`, Q Grader) and **Theo Lindqvist** (`reviewer2@beanwater.demo`, Coffee Educator). Signing in with one of those emails links you to the seeded profile. You can also just sign up — onboarding walks you through it.
+Seeded fictional profiles (plus 5 community members, 5 roasters, 8 beans, 12 logs): **Mara Quintero** (`reviewer1@beanwater.demo`, Q Grader) and **Theo Lindqvist** (`reviewer2@beanwater.demo`, Coffee Educator). **To try it, just sign up** with any email — onboarding walks you through it, and you can follow Mara, Theo and the others from the feed. (If a Clerk user is created for a seeded email, signing in with it links to that seeded profile.)
 
 ## Run locally
 
@@ -55,3 +56,4 @@ npm run dev
 - **Data model:** `User` (credentials, `aiUsageCount`, `onboardedAt`) · `Follow` · `Roaster` · `Bean` (unique per roaster) · `Equipment` · `Extraction` · `Roast` (curve as JSON) · `RoastMeRun` (Benny inputs/outputs). Flavor tags are stored as SCA paths (`Fruity > Berry > Blackberry`); the category drives chip color.
 - **Server Actions** validate with zod and never throw to the client; ownership is checked for linked equipment.
 - **Benny** reserves a credit with a conditional `updateMany` before calling the model and refunds it on failure, so the 3-call limit holds under concurrent requests. Output is schema-validated structured data, not parsed free text.
+- **Rate limiting:** every mutating Server Action runs a fixed-window counter (`src/lib/rate-limit.ts`) — one atomic `INSERT … ON CONFLICT DO UPDATE … RETURNING` on the `RateLimit` table, keyed by viewer id (or client IP), failing open if the DB errors. Benny is capped at 3/min and 20/day, checked before a credit is reserved.

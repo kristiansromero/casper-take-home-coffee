@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getViewer } from "@/lib/auth";
+import { RATE_LIMITS, rateLimit, rateLimitSubject, rateLimitedResult } from "@/lib/rate-limit";
 import { BENNY_MODEL, generateBennyProfile } from "@/lib/benny";
 import { FREE_LIMIT, type BennyRun, type GenerateResult } from "@/app/roast-me/types";
 
@@ -55,6 +56,13 @@ export async function generateRoastProfile(raw: RoastMeInput): Promise<GenerateR
 
   const viewer = await getViewer().catch(() => null);
   if (!viewer) return { ok: false, code: "AUTH", error: "Sign in to use Benny" };
+
+  // Rate limit before reserving a credit, so a throttled call never consumes one.
+  const subject = await rateLimitSubject(viewer.id);
+  for (const name of ["bennyMinute", "bennyDay"] as const) {
+    const rl = await rateLimit(name, subject, RATE_LIMITS[name]);
+    if (!rl.ok) return rateLimitedResult(rl.retryAfterSec);
+  }
 
   // Reserve a credit atomically so concurrent submits can't exceed the free limit.
   if (!viewer.isPro) {

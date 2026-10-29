@@ -3,12 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getViewer } from "@/lib/auth";
+import { RATE_LIMITS, rateLimit, rateLimitSubject, rateLimitedResult } from "@/lib/rate-limit";
 import { upsertBean } from "@/lib/beans";
 import { brewSchema, type BrewInput } from "@/app/brew/schema";
 
 export type BrewResult =
   | { ok: true; id: string }
-  | { ok: false; error: string; fieldErrors?: Record<string, string[]> };
+  | { ok: false; error: string; fieldErrors?: Record<string, string[]>; code?: "RATE_LIMITED" };
 
 export async function createBrew(input: BrewInput): Promise<BrewResult> {
   const parsed = brewSchema.safeParse(input);
@@ -23,6 +24,8 @@ export async function createBrew(input: BrewInput): Promise<BrewResult> {
   // requireViewer() throws; check explicitly so the client gets a clean error instead.
   const viewer = await getViewer();
   if (!viewer) return { ok: false, error: "Sign in to log brews." };
+  const rl = await rateLimit("createBrew", await rateLimitSubject(viewer.id), RATE_LIMITS.createBrew);
+  if (!rl.ok) return rateLimitedResult(rl.retryAfterSec);
 
   const { bean: beanInput, brewerId, grinderId, notes, ...brew } = parsed.data;
 

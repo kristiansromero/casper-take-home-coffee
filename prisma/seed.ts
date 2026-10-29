@@ -81,7 +81,7 @@ const EQUIPMENT: Record<number, { category: string; name: string; blurb: string 
 async function main() {
   // Re-runnable: only the demo accounts (and everything they own) are reset, so real
   // sign-ups survive a reseed. Cascades remove their logs, gear, follows and Benny runs.
-  await db.user.deleteMany({ where: { email: { endsWith: "@beanwater.demo" } } });
+  await db.user.deleteMany({ where: { email: { in: USERS.map((u) => u.email) } } });
 
   const users: Awaited<ReturnType<typeof db.user.create>>[] = [];
   for (const u of USERS) users.push(await db.user.create({ data: { ...u, onboardedAt: new Date() } }));

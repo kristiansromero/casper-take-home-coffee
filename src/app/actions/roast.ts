@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireViewer } from "@/lib/auth";
+import { RATE_LIMITS, rateLimit, rateLimitSubject, rateLimitedResult } from "@/lib/rate-limit";
 import { upsertBean } from "@/lib/beans";
 import { db } from "@/lib/db";
 import { generateCurve } from "@/lib/mock-curve";
@@ -10,7 +11,7 @@ import { roastSchema, type RoastInput } from "@/lib/roast-schema";
 
 export type CreateRoastResult =
   | { ok: true; id: string }
-  | { ok: false; error: string; fieldErrors?: Record<string, string[]> };
+  | { ok: false; error: string; fieldErrors?: Record<string, string[]>; code?: "RATE_LIMITED" };
 
 export async function createRoast(input: RoastInput): Promise<CreateRoastResult> {
   const parsed = roastSchema.safeParse(input);
@@ -21,6 +22,8 @@ export async function createRoast(input: RoastInput): Promise<CreateRoastResult>
 
   try {
     const viewer = await requireViewer();
+    const rl = await rateLimit("createRoast", await rateLimitSubject(viewer.id), RATE_LIMITS.createRoast);
+    if (!rl.ok) return rateLimitedResult(rl.retryAfterSec);
     const { bean: beanInput, machineId, ...r } = parsed.data;
     const bean = await upsertBean(beanInput);
 
@@ -57,6 +60,7 @@ export async function createRoast(input: RoastInput): Promise<CreateRoastResult>
     revalidatePath("/");
     return { ok: true, id: roast.id };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "Could not save roast." };
+    console.error("createRoast failed", e);
+    return { ok: false, error: "Could not save roast. Please try again." };
   }
 }

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getViewer } from "@/lib/auth";
+import { RATE_LIMITS, rateLimit, rateLimitSubject, rateLimitedResult } from "@/lib/rate-limit";
 
 const HANDLE_RE = /^[a-z0-9_]{3,20}$/;
 const CATEGORIES = ["grinder", "brewer", "espresso", "roaster", "kettle", "scale"] as const;
@@ -32,13 +33,15 @@ const onboardingSchema = z.object({
 export type OnboardingInput = z.input<typeof onboardingSchema>;
 export type OnboardingResult =
   | { ok: true }
-  | { ok: false; error: string; fieldErrors?: Record<string, string[]> };
+  | { ok: false; error: string; fieldErrors?: Record<string, string[]>; code?: "RATE_LIMITED" };
 
 /** Live uniqueness check for the handle field. */
 export async function checkHandle(raw: string): Promise<{ available: boolean; reason?: string }> {
   const handle = raw.trim().toLowerCase();
   if (!HANDLE_RE.test(handle)) return { available: false, reason: "3–20 characters: a-z, 0-9, _" };
   const viewer = await getViewer();
+  const rl = await rateLimit("checkHandle", await rateLimitSubject(viewer?.id), RATE_LIMITS.checkHandle);
+  if (!rl.ok) return { available: false, reason: `Slow down — try again in ${rl.retryAfterSec}s.` };
   const taken = await db.user.findUnique({ where: { handle }, select: { id: true } });
   if (taken && taken.id !== viewer?.id) return { available: false, reason: "That handle is taken." };
   return { available: true };
@@ -56,6 +59,8 @@ export async function completeOnboarding(input: OnboardingInput): Promise<Onboar
 
   const viewer = await getViewer();
   if (!viewer) return { ok: false, error: "Sign in to set up your profile." };
+  const rl = await rateLimit("completeOnboarding", await rateLimitSubject(viewer.id), RATE_LIMITS.completeOnboarding);
+  if (!rl.ok) return rateLimitedResult(rl.retryAfterSec);
 
   const { name, handle, credentials, bio, equipment } = parsed.data;
 

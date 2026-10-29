@@ -131,3 +131,12 @@ model RoastMeRun {
 
   @@index([userId, createdAt])
 }
+
+// Fixed-window rate limit counters, keyed by "<action>:<userId|ip>:<windowStart>".
+model RateLimit {
+  key       String   @id
+  count     Int      @default(0)
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
