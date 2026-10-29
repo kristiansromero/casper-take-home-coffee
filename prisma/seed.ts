@@ -80,6 +80,7 @@ const EQUIPMENT: Record<number, { category: string; name: string; blurb: string 
 
 async function main() {
   // Reset in dependency order so the seed is re-runnable.
+  await db.roastMeRun.deleteMany();
   await db.extraction.deleteMany();
   await db.roast.deleteMany();
   await db.follow.deleteMany();
@@ -89,7 +90,7 @@ async function main() {
   await db.user.deleteMany();
 
   const users: Awaited<ReturnType<typeof db.user.create>>[] = [];
-  for (const u of USERS) users.push(await db.user.create({ data: u }));
+  for (const u of USERS) users.push(await db.user.create({ data: { ...u, onboardedAt: new Date() } }));
 
   const roasters: Awaited<ReturnType<typeof db.roaster.create>>[] = [];
   for (const r of ROASTERS) roasters.push(await db.roaster.create({ data: r }));

@@ -1,4 +1,5 @@
 import "server-only";
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 
 // Without Clerk keys the app runs in "demo mode": reads stay public and writes are
@@ -30,6 +31,13 @@ export async function getViewer() {
     update: { clerkId: userId },
     create: { clerkId: userId, email, name, handle },
   });
+}
+
+/** For signed-in pages: null when signed out; sends signed-in users who haven't onboarded to /onboarding. */
+export async function getOnboardedViewer() {
+  const viewer = await getViewer();
+  if (viewer && !viewer.onboardedAt) redirect("/onboarding");
+  return viewer;
 }
 
 /** For Server Actions: throws when nobody is signed in. */

@@ -9,20 +9,23 @@ datasource db {
 }
 
 model User {
-  id          String       @id @default(cuid())
-  clerkId     String?      @unique
-  email       String       @unique
-  name        String
-  handle      String       @unique
-  credentials String?
-  bio         String?
-  isPro       Boolean      @default(false)
-  createdAt   DateTime     @default(now())
-  equipment   Equipment[]
-  extractions Extraction[]
-  roasts      Roast[]
-  followers   Follow[]     @relation("following")
-  following   Follow[]     @relation("follower")
+  id           String       @id @default(cuid())
+  clerkId      String?      @unique
+  email        String       @unique
+  name         String
+  handle       String       @unique
+  credentials  String?
+  bio          String?
+  isPro        Boolean      @default(false)
+  aiUsageCount Int          @default(0)
+  onboardedAt  DateTime?
+  createdAt    DateTime     @default(now())
+  roastMeRuns  RoastMeRun[]
+  equipment    Equipment[]
+  extractions  Extraction[]
+  roasts       Roast[]
+  followers    Follow[]     @relation("following")
+  following    Follow[]     @relation("follower")
 }
 
 model Follow {
@@ -114,4 +117,17 @@ model Roast {
   createdAt     DateTime   @default(now())
 
   @@index([createdAt])
+}
+
+// One Benny ("Roast Me") generation: the inputs and the structured AI output.
+model RoastMeRun {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  input     Json
+  output    Json
+  model     String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
