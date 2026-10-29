@@ -9,7 +9,8 @@ export type NavItem = { href: string; label: string; pro?: boolean };
 /** Primary nav links with active state; a horizontally scrollable row on mobile. */
 export function NavLinks({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  // Match whole segments so "/roast" doesn't light up on "/roast-me".
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`));
 
   return (
     <nav className="-mx-4 w-[calc(100%+2rem)] overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:w-auto md:flex-1 md:px-0 [&::-webkit-scrollbar]:hidden">

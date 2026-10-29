@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { FileUp, Flame, Loader2 } from "lucide-react";
 import { createRoast } from "@/app/actions/roast";
-import { FlavorTagPicker } from "@/components/flavor-tag-picker";
+import { FlavorWheelPicker, notesToPaths, pathsToNotes } from "@/components/flavor-wheel-picker";
 import { ProBadge } from "@/components/pro-badge";
 import { RoastCurveChart } from "@/components/roast-curve-chart";
 import { Button } from "@/components/ui/button";
@@ -244,7 +244,7 @@ export function RoastForm({ roasters }: { roasters: RoasterOption[] }) {
         <Controller
           control={control}
           name="flavorTags"
-          render={({ field }) => <FlavorTagPicker value={field.value} onChange={field.onChange} />}
+          render={({ field }) => <FlavorWheelPicker value={pathsToNotes(field.value)} onChange={(notes) => field.onChange(notesToPaths(notes))} />}
         />
         {errors.flavorTags?.message && <p className="mt-2 text-xs text-amber">{errors.flavorTags.message}</p>}
         <Field label="Notes" htmlFor="notes" className="mt-5">

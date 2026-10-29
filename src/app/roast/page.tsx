@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SignInPrompt } from "@/components/require-viewer";
-import { getViewer } from "@/lib/auth";
+import { getOnboardedViewer } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { RoastForm } from "./roast-form";
 
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Record Roast · BeanWater" };
 
 export default async function RoastPage() {
-  const viewer = await getViewer();
+  const viewer = await getOnboardedViewer();
   if (!viewer) return <SignInPrompt action="log a roast" />;
 
   const roasters = await db.equipment.findMany({

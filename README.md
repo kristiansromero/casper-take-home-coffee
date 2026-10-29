@@ -1,60 +1,57 @@
 # BeanWater
 
-A dark-mode social log for specialty coffee: record extractions and roasts, tag them with the SCA flavor wheel, and browse what the community is brewing.
+**Strava for coffee.** Log your extractions and roasts, describe them with the SCA Coffee Taster's Flavor Wheel, follow other coffee people, and ask Benny — an AI roast SME — to draft a roast profile for your next bean.
 
-**Stack:** Next.js 15 (App Router, Server Actions, TypeScript) · Tailwind CSS v4 + shadcn-style primitives · Neon Postgres + Prisma 6 · Clerk · Recharts · framer-motion · ogl (React Bits–style Aurora background) · jszip
+- **Live:** https://casper-take-home-coffee.vercel.app
+- **Stack:** TypeScript end to end — Next.js 15 (App Router, Server Actions) · Neon Postgres + Prisma 6 · Clerk auth · Vercel AI SDK + Claude · Tailwind v4 · Recharts · framer-motion · jszip
 
-## Pages
+## Who it's for
 
-| Route | What it does |
+Home brewers and roasters who want to remember what worked, and learn from people dialing in the same beans. Roasting has a steep learning curve; sharing roast milestones, curves and resulting flavor notes lowers it.
+
+## What works
+
+| Area | Details |
 | --- | --- |
-| `/` | Community feed of brews and roasts with All / Brews / Roasts toggle. Cards show the top 5 flavor tags; hover "+X more" for the rest. |
-| `/brew` | Record an extraction: bean (name + producer/roaster required; varietal, process, elevation optional), dose, yield, grind, time, temp, and a 3-tier SCA flavor picker with a link to the WCR Sensory Lexicon. |
-| `/roast` | Record a roast: machine, batch, charge temp, first crack, drop. Live simulated curve preview. `.alog` upload is a locked Pro feature. |
-| `/brew/[id]`, `/roast/[id]` | Detail views with full parameters, equipment blurbs, roast curve (BT / ET / RoR), and a ZIP export (`.alog` + `.md`). |
-| `/profile/[id]` | Profile shelf: followers, following, credentials, equipment shelf, bean history, past logs. |
-| `/roast-me` | Pro-locked AI roast generator showcase with sample Skywalker V2 profiles and a Free vs Pro comparison. |
+| **Auth & onboarding** | Clerk sign-up / log-in, protected logging routes with redirect-back, 3-step onboarding (handle, credentials, equipment shelf). |
+| **Feed** (`/`) | *Following* feed of people you follow, *Discover* for everyone; Brews / Roasts filter. Cards show bean, roaster and the top 5 colored SCA notes, with "+N more" on hover. |
+| **Record Brew** (`/brew`) | Bean (name + producer/roaster required; varietal, process, elevation optional), method, equipment, dose / yield / live ratio, grind, time, temp, rating, and the flavor wheel. |
+| **Flavor wheel** | 3-tier SCA picker (category → subcategory → attribute) in SCA colors, breadcrumb chips, search, structured JSON output, and a WCR Sensory Lexicon drawer with definitions and references. |
+| **Record Roast** (`/roast`) | Machine, batch, charge temp, first crack, drop time/temp, live development % and simulated curve preview. |
+| **Detail pages** | `/brew/[id]`, `/roast/[id]` with full parameters, equipment blurbs, BT/ET/RoR curve and a `.alog` + `.md` ZIP export. |
+| **Profiles** (`/profile/[id]`) | Follow / unfollow, follower & following counts, credentials, equipment shelf with per-item brew/roast counts, bean history, past logs. |
+| **Benny** (`/roast-me`) | AI roast profile for your bean on a Skywalker V2, grounded on similar community roasts in the database. Strategy write-up, milestones, curve chart and a downloadable roast package (`profile.alog` + `roast-profile-strategy.md`). 3 free generations per account, enforced atomically server-side. |
+
+## What's incomplete
+
+- **`.alog` upload** is shown as a locked Pro feature; curves on logged roasts are simulated from milestones (`src/lib/mock-curve.ts`).
+- **Pro / billing** is not wired — after 3 Benny generations the upgrade card is a placeholder.
+- The exported `.alog` imitates Artisan's format but is not guaranteed to load in Artisan.
+- No editing/deleting of posts, comments or likes yet.
 
 ## Demo accounts
 
-The seed creates two fictional reviewer personas (plus five community members, 5 roasters, 8 beans and 12 logs):
+Seeded fictional profiles (plus 5 community members, 5 roasters, 8 beans, 12 logs): **Mara Quintero** (`reviewer1@beanwater.demo`, Q Grader) and **Theo Lindqvist** (`reviewer2@beanwater.demo`, Coffee Educator). Signing in with one of those emails links you to the seeded profile. You can also just sign up — onboarding walks you through it.
 
-| Email | Name | Credentials |
-| --- | --- | --- |
-| `reviewer1@beanwater.demo` | Mara Quintero (Pro) | Q Grader, National Barista Finalist |
-| `reviewer2@beanwater.demo` | Theo Lindqvist | Coffee Educator & Sensory Analyst |
-
-**Auth modes**
-
-- **No Clerk keys (demo mode):** everything is browsable, and new brews/roasts are attributed to `reviewer1`. The nav shows a "Demo mode" badge. Works locally and deployed.
-- **With Clerk keys:** set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`; logging requires sign-in. Signing in with an email that matches a seeded user links you to that profile. For local dev, `npx clerk@latest init --accountless` writes temporary keys without a Clerk account (Clerk v7 no longer runs keyless automatically).
-
-## Running locally
+## Run locally
 
 ```bash
 npm install
-npx neon@latest deploy        # pulls DATABASE_URL / DATABASE_URL_UNPOOLED into .env.local
-npm run db:push               # create tables
-npm run db:seed               # reset + seed demo data
+cp .env.example .env.local          # then fill in the values below
+npm run db:push                     # create tables
+npm run db:seed                     # reset + seed demo data
 npm run dev
 ```
 
-Prisma reads `.env.local` through `dotenv-cli` in the `db:*` scripts.
+| Variable | Notes |
+| --- | --- |
+| `DATABASE_URL` / `DATABASE_URL_UNPOOLED` | Neon pooled / direct connection strings (`npx neon@latest deploy` writes them) |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` | Clerk app keys. Without them the app runs in **demo mode** (no auth; writes attributed to the first reviewer). |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in`, `NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up`, `NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/`, `NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL=/onboarding` | Clerk routing |
+| `ANTHROPIC_API_KEY` | Enables Benny. Without it Benny reports that it's offline and no credit is spent. |
 
-## Environment variables
+## Architecture notes
 
-| Variable | Required | Notes |
-| --- | --- | --- |
-| `DATABASE_URL` | yes | Neon **pooled** connection string (`-pooler` host) |
-| `DATABASE_URL_UNPOOLED` | yes | Neon direct connection string (used by Prisma migrations / `db push`) |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | no | Enables real sign-in in production |
-| `CLERK_SECRET_KEY` | no | Pair with the publishable key |
-
-## Data model
-
-`User` (credentials, `isPro`) · `Follow` (self-relation) · `Roaster` · `Bean` (unique per roaster) · `Equipment` · `Extraction` · `Roast` (curve stored as JSON). Flavor tags are stored as SCA paths, e.g. `Fruity > Berry > Blackberry`, so the top-level category drives chip color.
-
-## Scope notes
-
-- `.alog` upload and the AI "Roast Me" generator are deliberately locked as Pro features; roast curves are generated from roast milestones (`src/lib/mock-curve.ts`).
-- The exported `.alog` imitates Artisan's format and is sample data, not a byte-compatible Artisan file.
+- **Data model:** `User` (credentials, `aiUsageCount`, `onboardedAt`) · `Follow` · `Roaster` · `Bean` (unique per roaster) · `Equipment` · `Extraction` · `Roast` (curve as JSON) · `RoastMeRun` (Benny inputs/outputs). Flavor tags are stored as SCA paths (`Fruity > Berry > Blackberry`); the category drives chip color.
+- **Server Actions** validate with zod and never throw to the client; ownership is checked for linked equipment.
+- **Benny** reserves a credit with a conditional `updateMany` before calling the model and refunds it on failure, so the 3-call limit holds under concurrent requests. Output is schema-validated structured data, not parsed free text.

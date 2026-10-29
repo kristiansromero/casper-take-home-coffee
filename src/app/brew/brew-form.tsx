@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AlertTriangle, Loader2, Star } from "lucide-react";
 import { createBrew } from "@/app/actions/brew";
-import { FlavorTagPicker } from "@/components/flavor-tag-picker";
+import { FlavorWheelPicker, notesToPaths, pathsToNotes } from "@/components/flavor-wheel-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, Input, Select, Textarea } from "@/components/ui/form-controls";
@@ -217,7 +217,7 @@ export function BrewForm({ brewers, grinders }: { brewers: EquipmentOption[]; gr
         <Controller
           control={control}
           name="flavorTags"
-          render={({ field }) => <FlavorTagPicker value={field.value} onChange={field.onChange} />}
+          render={({ field }) => <FlavorWheelPicker value={pathsToNotes(field.value)} onChange={(notes) => field.onChange(notesToPaths(notes))} />}
         />
         {errors.flavorTags && <p className="mt-2 text-xs text-amber">{errors.flavorTags.message}</p>}
         <Field label="Notes" htmlFor="notes" error={errors.notes?.message} className="mt-5">

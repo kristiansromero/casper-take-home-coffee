@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SignInPrompt } from "@/components/require-viewer";
-import { getViewer } from "@/lib/auth";
+import { getOnboardedViewer } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { BrewForm } from "./brew-form";
 
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Record Extraction" };
 
 export default async function BrewPage() {
-  const viewer = await getViewer();
+  const viewer = await getOnboardedViewer();
   if (!viewer) return <SignInPrompt action="log a brew" />;
 
   const equipment = await db.equipment.findMany({

@@ -114,3 +114,168 @@ export const tagPath = (...names: string[]) => names.join(TAG_SEP);
 export const tagLabel = (path: string) => path.split(TAG_SEP).at(-1) ?? path;
 export const tagCategory = (path: string) => path.split(TAG_SEP)[0];
 export const tagColor = (path: string) => CATEGORY_COLORS[tagCategory(path)] ?? "#47918F";
+
+// ---------------------------------------------------------------------------
+// Per-node colors approximating the printed SCA/WCR wheel palette. Keyed by
+// full path (names repeat across tiers, e.g. "Green/Vegetative").
+// ---------------------------------------------------------------------------
+
+const C = (...names: string[]) => tagPath(...names);
+
+export const NODE_COLORS: Record<string, string> = {
+  // Fruity — reds / pinks / oranges
+  [C("Fruity")]: "#DA1D23",
+  [C("Fruity", "Berry")]: "#DD4C51",
+  [C("Fruity", "Berry", "Blackberry")]: "#7A1B3A",
+  [C("Fruity", "Berry", "Raspberry")]: "#E62969",
+  [C("Fruity", "Berry", "Blueberry")]: "#6569B0",
+  [C("Fruity", "Berry", "Strawberry")]: "#EF2D36",
+  [C("Fruity", "Dried Fruit")]: "#C94A44",
+  [C("Fruity", "Dried Fruit", "Raisin")]: "#B53B54",
+  [C("Fruity", "Dried Fruit", "Prune")]: "#A5446F",
+  [C("Fruity", "Other Fruit")]: "#F2684B",
+  [C("Fruity", "Other Fruit", "Coconut")]: "#E9A27C",
+  [C("Fruity", "Other Fruit", "Cherry")]: "#E73451",
+  [C("Fruity", "Other Fruit", "Pomegranate")]: "#E65656",
+  [C("Fruity", "Other Fruit", "Pineapple")]: "#F89A1C",
+  [C("Fruity", "Other Fruit", "Grape")]: "#AEB92C",
+  [C("Fruity", "Other Fruit", "Apple")]: "#4EB849",
+  [C("Fruity", "Other Fruit", "Peach")]: "#F68A5C",
+  [C("Fruity", "Other Fruit", "Pear")]: "#BAA635",
+  [C("Fruity", "Citrus Fruit")]: "#F7A128",
+  [C("Fruity", "Citrus Fruit", "Grapefruit")]: "#F26355",
+  [C("Fruity", "Citrus Fruit", "Orange")]: "#E2631E",
+  [C("Fruity", "Citrus Fruit", "Lemon")]: "#FDE404",
+  [C("Fruity", "Citrus Fruit", "Lime")]: "#7EB138",
+  // Sour/Fermented — yellow-greens / ochres
+  [C("Sour/Fermented")]: "#EBB40F",
+  [C("Sour/Fermented", "Sour")]: "#E1C315",
+  [C("Sour/Fermented", "Sour", "Sour Aromatics")]: "#9EA718",
+  [C("Sour/Fermented", "Sour", "Acetic Acid")]: "#94A76F",
+  [C("Sour/Fermented", "Sour", "Butyric Acid")]: "#D0B24F",
+  [C("Sour/Fermented", "Sour", "Isovaleric Acid")]: "#8EB646",
+  [C("Sour/Fermented", "Sour", "Citric Acid")]: "#FAEF07",
+  [C("Sour/Fermented", "Sour", "Malic Acid")]: "#C1BA07",
+  [C("Sour/Fermented", "Alcohol/Fermented")]: "#B09733",
+  [C("Sour/Fermented", "Alcohol/Fermented", "Winey")]: "#A8245E",
+  [C("Sour/Fermented", "Alcohol/Fermented", "Whiskey")]: "#B34039",
+  [C("Sour/Fermented", "Alcohol/Fermented", "Fermented")]: "#BA9232",
+  [C("Sour/Fermented", "Alcohol/Fermented", "Overripe")]: "#8B6439",
+  // Green/Vegetative — greens
+  [C("Green/Vegetative")]: "#187A2F",
+  [C("Green/Vegetative", "Olive Oil")]: "#A2B029",
+  [C("Green/Vegetative", "Raw")]: "#718933",
+  [C("Green/Vegetative", "Green/Vegetative")]: "#3AA255",
+  [C("Green/Vegetative", "Green/Vegetative", "Under-ripe")]: "#A2BB2B",
+  [C("Green/Vegetative", "Green/Vegetative", "Peapod")]: "#62AA3C",
+  [C("Green/Vegetative", "Green/Vegetative", "Fresh")]: "#03A653",
+  [C("Green/Vegetative", "Green/Vegetative", "Dark Green")]: "#038549",
+  [C("Green/Vegetative", "Green/Vegetative", "Vegetative")]: "#28B44B",
+  [C("Green/Vegetative", "Green/Vegetative", "Hay-like")]: "#A3A830",
+  [C("Green/Vegetative", "Green/Vegetative", "Herb-like")]: "#7AC141",
+  [C("Green/Vegetative", "Beany")]: "#5E9A80",
+  // Other — blue-greys
+  [C("Other")]: "#0AA3B5",
+  [C("Other", "Papery/Musty")]: "#9DB2B7",
+  [C("Other", "Papery/Musty", "Stale")]: "#8B8C90",
+  [C("Other", "Papery/Musty", "Cardboard")]: "#BEB276",
+  [C("Other", "Papery/Musty", "Papery")]: "#E8E4CF",
+  [C("Other", "Papery/Musty", "Woody")]: "#8E6418",
+  [C("Other", "Papery/Musty", "Moldy/Damp")]: "#A3A36F",
+  [C("Other", "Papery/Musty", "Musty/Dusty")]: "#C9B583",
+  [C("Other", "Papery/Musty", "Musty/Earthy")]: "#978847",
+  [C("Other", "Papery/Musty", "Animalic")]: "#9D977F",
+  [C("Other", "Papery/Musty", "Meaty Brothy")]: "#CC7B6A",
+  [C("Other", "Papery/Musty", "Phenolic")]: "#DB646A",
+  [C("Other", "Chemical")]: "#76C0CB",
+  [C("Other", "Chemical", "Bitter")]: "#80A89D",
+  [C("Other", "Chemical", "Salty")]: "#C9E6F5",
+  [C("Other", "Chemical", "Medicinal")]: "#7A9BAE",
+  [C("Other", "Chemical", "Petroleum")]: "#039FB8",
+  [C("Other", "Chemical", "Skunky")]: "#5E777B",
+  [C("Other", "Chemical", "Rubber")]: "#5A5050",
+  // Roasted — browns / greys
+  [C("Roasted")]: "#C94930",
+  [C("Roasted", "Pipe Tobacco")]: "#CAA465",
+  [C("Roasted", "Tobacco")]: "#DFBD7E",
+  [C("Roasted", "Burnt")]: "#BE8663",
+  [C("Roasted", "Burnt", "Acrid")]: "#B9A449",
+  [C("Roasted", "Burnt", "Ashy")]: "#899893",
+  [C("Roasted", "Burnt", "Smoky")]: "#A1743B",
+  [C("Roasted", "Burnt", "Brown, Roast")]: "#A0571A",
+  [C("Roasted", "Cereal")]: "#DDAF61",
+  [C("Roasted", "Cereal", "Grain")]: "#B7906F",
+  [C("Roasted", "Cereal", "Malt")]: "#EB9D5F",
+  // Spices — red-browns
+  [C("Spices")]: "#AD213E",
+  [C("Spices", "Pungent")]: "#94576A",
+  [C("Spices", "Pepper")]: "#CC3D41",
+  [C("Spices", "Brown Spice")]: "#B14D57",
+  [C("Spices", "Brown Spice", "Anise")]: "#C78936",
+  [C("Spices", "Brown Spice", "Nutmeg")]: "#A3363A",
+  [C("Spices", "Brown Spice", "Cinnamon")]: "#E5762E",
+  [C("Spices", "Brown Spice", "Clove")]: "#A16C5A",
+  // Nutty/Cocoa — browns
+  [C("Nutty/Cocoa")]: "#A87B64",
+  [C("Nutty/Cocoa", "Nutty")]: "#C78869",
+  [C("Nutty/Cocoa", "Nutty", "Peanuts")]: "#D4AD12",
+  [C("Nutty/Cocoa", "Nutty", "Hazelnut")]: "#9D5433",
+  [C("Nutty/Cocoa", "Nutty", "Almond")]: "#C89F83",
+  [C("Nutty/Cocoa", "Cocoa")]: "#BB764C",
+  [C("Nutty/Cocoa", "Cocoa", "Chocolate")]: "#8A4A30",
+  [C("Nutty/Cocoa", "Cocoa", "Dark Chocolate")]: "#6E2B22",
+  // Sweet — amber / orange-brown
+  [C("Sweet")]: "#E65832",
+  [C("Sweet", "Brown Sugar")]: "#D45A59",
+  [C("Sweet", "Brown Sugar", "Molasses")]: "#7B3A2A",
+  [C("Sweet", "Brown Sugar", "Maple Syrup")]: "#AE341F",
+  [C("Sweet", "Brown Sugar", "Caramelized")]: "#D78823",
+  [C("Sweet", "Brown Sugar", "Honey")]: "#DA5C1F",
+  [C("Sweet", "Vanilla")]: "#F89A80",
+  [C("Sweet", "Vanillin")]: "#F37674",
+  [C("Sweet", "Overall Sweet")]: "#E75B68",
+  [C("Sweet", "Sweet Aromatics")]: "#D0545F",
+  // Floral — purples / pinks
+  [C("Floral")]: "#DA0D68",
+  [C("Floral", "Black Tea")]: "#975E6D",
+  [C("Floral", "Floral")]: "#E0719C",
+  [C("Floral", "Floral", "Chamomile")]: "#F99E1C",
+  [C("Floral", "Floral", "Rose")]: "#EF5A78",
+  [C("Floral", "Floral", "Jasmine")]: "#F2E9A8",
+};
+
+/** Most specific wheel color for a path, falling back up the tree, then to the category color. */
+export function nodeColor(path: string): string {
+  const parts = path.split(TAG_SEP);
+  for (let i = parts.length; i > 0; i--) {
+    const c = NODE_COLORS[parts.slice(0, i).join(TAG_SEP)];
+    if (c) return c;
+  }
+  return tagColor(path);
+}
+
+/** Every node of the wheel as a full path (depth-first). */
+export const ALL_WHEEL_PATHS: string[] = (() => {
+  const out: string[] = [];
+  const walk = (nodes: FlavorNode[], prefix: string[]) => {
+    for (const node of nodes) {
+      const p = [...prefix, node.name];
+      out.push(tagPath(...p));
+      if (node.children) walk(node.children, p);
+    }
+  };
+  walk(SCA_WHEEL, []);
+  return out;
+})();
+
+/** The node at a path, or undefined if it isn't on the wheel. */
+export function findNode(path: string): FlavorNode | undefined {
+  let nodes: FlavorNode[] | undefined = SCA_WHEEL;
+  let found: FlavorNode | undefined;
+  for (const name of path.split(TAG_SEP)) {
+    found = nodes?.find((n) => n.name === name);
+    if (!found) return undefined;
+    nodes = found.children;
+  }
+  return found;
+}
