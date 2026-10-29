@@ -12,8 +12,8 @@ export async function Nav() {
 
   const items: NavItem[] = [
     { href: "/", label: "Feed" },
-    { href: "/brew", label: "Log Brew" },
-    { href: "/roast", label: "Log Roast" },
+    { href: "/brew", label: "Brew" },
+    { href: "/roast", label: "Roast" },
     { href: "/roast-me", label: "Roast Me", pro: true },
     ...(viewer ? [{ href: `/profile/${viewer.id}`, label: "My Shelf" }] : []),
   ];
