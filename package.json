@@ -1,0 +1,46 @@
+{
+  "name": "casper-take-home-coffee",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^7.9.22",
+    "@hookform/resolvers": "^6.0.2",
+    "@neon/config": "^1.9.5",
+    "@neon/env": "^1.6.6",
+    "@prisma/client": "^6.19.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^14.8.0",
+    "jszip": "^3.10.2",
+    "lucide-react": "^1.64.0",
+    "next": "15.5.28",
+    "ogl": "^1.0.11",
+    "radix-ui": "^1.8.1",
+    "react": "~19.1.4",
+    "react-dom": "~19.1.4",
+    "react-hook-form": "^7.91.0",
+    "recharts": "^3.10.1",
+    "tailwind-merge": "^3.7.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "dotenv-cli": "^11.1.0",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.28",
+    "prisma": "^6.19.3",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}
