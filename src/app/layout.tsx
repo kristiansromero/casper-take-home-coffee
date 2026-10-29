@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: { default: "BeanWater", template: "%s · BeanWater" },
   description:
-    "Log your brews and roasts, chart extraction curves, and see what the specialty coffee community is dialing in.",
+    "A shared lab notebook for brewing and roasting: publish recipes and roast curves, tag them with the SCA flavor wheel, and build on the community's results.",
 };
 
 // Clerk Core 3 variable names (colorForeground / colorInput replace colorText / colorInputBackground).

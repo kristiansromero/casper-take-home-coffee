@@ -29,14 +29,15 @@ export function WelcomeHero() {
 
       <div className="relative max-w-2xl">
         <p className="inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal/10 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-teal-bright">
-          <Sparkles className="size-3" /> Strava for coffee
+          <Sparkles className="size-3" /> Open coffee research
         </p>
         <h1 className="mt-5 text-4xl font-semibold tracking-tight text-sterile sm:text-5xl">
           Every cup is a <span className="text-teal">data point.</span>
         </h1>
         <p className="mt-4 text-base text-muted sm:text-lg">
-          BeanWater is where specialty coffee people log brews and roasts, chart extraction curves, and learn from each
-          other&apos;s recipes.
+          BeanWater is a shared lab notebook for brewing and roasting. Publish your recipes, roast curves and tasting
+          notes in a common SCA language, compare results on the same beans, and build on what the community has
+          already worked out.
         </p>
         <div className="mt-7 flex flex-wrap items-center gap-3">
           <Button asChild size="lg">

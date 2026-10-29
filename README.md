@@ -1,6 +1,6 @@
 # BeanWater
 
-**Strava for coffee.** Log your extractions and roasts, describe them with the SCA Coffee Taster's Flavor Wheel, follow other coffee people, and ask Benny — an AI roast SME — to draft a roast profile for your next bean.
+**A shared lab notebook for brewing and roasting.** Publish extractions and roast profiles, describe them in the common language of the SCA Coffee Taster's Flavor Wheel, compare results with people working on the same beans, and ask Benny — an AI roast SME grounded in the community's roasts — to draft a starting profile for your next bean.
 
 - **Live:** https://casper-take-home-coffee.vercel.app
 - **Stack:** TypeScript end to end — Next.js 15 (App Router, Server Actions) · Neon Postgres + Prisma 6 · Clerk auth · Vercel AI SDK + Claude · Tailwind v4 · Recharts · framer-motion · jszip
